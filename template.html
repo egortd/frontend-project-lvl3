@@ -9,16 +9,29 @@
       <div class="jumbotron mt-3">
         <h1 class="display-4">RSS reader</h1>
         <hr class="my-4">
-        <form>
+        <form id="inputForm">
           <div class="row">
             <div class="col-10">
               <input type="text" class="form-control" placeholder="type URL address" id="addUrl">
             </div>
-            <button class="btn btn-primary ml-2" id="submitButton">submit</button>
+            <button type="submit" class="btn btn-primary ml-2" id="submitButton" disabled>submit</button>
           </div>
+          <div class="small text-muted ml-2 mt-2" id="inputStatus"></div>
         </form>
       </div>
+      <div class="row">
+        <div class="col-4">
+          <h3>FEEDS:</h3>
+          <ul class="list-group list-group-flush" id="feeds"></ul>
+        </div>
+        <div class="col-7 offset-1">
+          <h3>ARTICLES:</h3>
+          <ul class="list-group list-group-flush" id="articles"></ul>
+        </div>
+      </div>
     </div>
+
+    
     <script crossorigin="anonymous" src="https://polyfill.io/v3/polyfill.min.js"></script>
   </body>
 </html>
