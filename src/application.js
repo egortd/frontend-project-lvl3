@@ -3,18 +3,24 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { watch } from 'melanke-watchjs';
 import axios from 'axios';
 import isURL from 'validator/lib/isURL';
+import $ from 'jquery';
 
 export default () => {
   const state = {
     formStatus: 'empty',
     feedsURL: [],
     currentURL: null,
+    modal: {
+      status: 'hidden',
+      description: '',
+    },
   };
 
+  const inputForm = document.querySelector('#inputForm');
   const input = document.querySelector('#addUrl');
   const inputStatus = document.querySelector('#inputStatus');
   const submitButton = document.querySelector('#submitButton');
-  const inputForm = document.querySelector('#inputForm');
+  const modal = document.querySelector('#desсriptionModal');
   const feedsPart = document.querySelector('#feeds');
   const articlesPart = document.querySelector('#articles');
   const cors = 'https://cors-anywhere.herokuapp.com/';
@@ -24,18 +30,23 @@ export default () => {
       input.value = '';
       submitButton.disabled = true;
       input.classList.remove('is-valid', 'is-invalid');
+      inputStatus.classList.remove('text-danger', 'text-success');
       inputStatus.textContent = '';
     },
     valid: () => {
       submitButton.disabled = false;
       input.classList.remove('is-invalid');
+      inputStatus.classList.remove('text-danger');
       input.classList.add('is-valid');
-      inputStatus.textContent = '';
+      inputStatus.classList.add('text-success');
+      inputStatus.textContent = 'valid URL address';
     },
     invalid: () => {
       submitButton.disabled = true;
       input.classList.remove('is-valid');
+      inputStatus.classList.remove('text-success');
       input.classList.add('is-invalid');
+      inputStatus.classList.add('text-danger');
       inputStatus.textContent = 'invalid URL address';
     },
   };
@@ -66,10 +77,12 @@ export default () => {
     items.forEach((item) => {
       const link = item.querySelector('link').textContent;
       const itemTitle = item.querySelector('title').textContent;
-      const articleItem = `<a href="${link}" 
-          class="list-group-item list-group-item-action border-0 pl-0" 
-          target="_blank">${itemTitle}</a>`;
-      articlesPart.insertAdjacentHTML('afterend', articleItem);
+      const itemDescription = item.querySelector('description').textContent;
+      const itemArticle = `<li class="list-group-item list-group-item-action pl-0 border-0">
+      <a href="${link}" target="_blank" class="text-decoration-none text-reset">${itemTitle}</a>
+      <a href="#" class="badge badge-light" data-toggle="modal"
+      data-target="#desсriptionModal" data-description="${itemDescription}">description</a></li>`;
+      articlesPart.insertAdjacentHTML('afterend', itemArticle);
     });
   };
 
@@ -84,5 +97,24 @@ export default () => {
         state.formStatus = 'empty';
         state.feedsURL = [...state.feedsURL, state.currentURL];
       });
+  });
+
+  $('#desсriptionModal').on('show.bs.modal', (event) => {
+    const current = $(event.relatedTarget);
+
+    state.modal.description = current.data('description');
+    state.modal.status = 'active';
+  });
+
+  $('#desсriptionModal').on('hide.bs.modal', () => {
+    state.modal.status = 'hidden';
+    state.modal.description = '';
+  });
+
+  watch(state, 'modal', () => {
+    if (state.modal.status === 'hidden') {
+      return;
+    }
+    modal.querySelector('.modal-body').textContent = state.modal.description;
   });
 };
