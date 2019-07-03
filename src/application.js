@@ -4,12 +4,15 @@ import { watch } from 'melanke-watchjs';
 import axios from 'axios';
 import isURL from 'validator/lib/isURL';
 import $ from 'jquery';
+import parseFeed from './parser';
+import renderer from './renderers';
 
 export default () => {
   const state = {
     formStatus: 'empty',
     feedsURL: [],
     currentURL: null,
+    currentFeed: null,
     modal: {
       status: 'hidden',
       description: '',
@@ -21,8 +24,6 @@ export default () => {
   const inputStatus = document.querySelector('#inputStatus');
   const submitButton = document.querySelector('#submitButton');
   const modal = document.querySelector('#desсriptionModal');
-  const feedsPart = document.querySelector('#feeds');
-  const articlesPart = document.querySelector('#articles');
   const cors = 'https://cors-anywhere.herokuapp.com/';
 
   const formStatusActions = {
@@ -64,40 +65,18 @@ export default () => {
     }
   });
 
-  const render = (data) => {
-    const title = data.querySelector('title').textContent;
-    const description = data.querySelector('description').textContent;
-    const items = data.querySelectorAll('item');
-    const feedItem = `
-        <li class="list-group-item border-0 pl-0">
-          <h6 class="mb-1">${title}</h6>
-          <p class="small mb-1">${description}</p>
-        </li>`;
-    feedsPart.insertAdjacentHTML('afterend', feedItem);
-    items.forEach((item) => {
-      const link = item.querySelector('link').textContent;
-      const itemTitle = item.querySelector('title').textContent;
-      const itemDescription = item.querySelector('description').textContent;
-      const itemArticle = `<li class="list-group-item list-group-item-action pl-0 border-0">
-      <a href="${link}" target="_blank" class="text-decoration-none text-reset">${itemTitle}</a>
-      <a href="#" class="badge badge-light" data-toggle="modal"
-      data-target="#desсriptionModal" data-description="${itemDescription}">description</a></li>`;
-      articlesPart.insertAdjacentHTML('afterend', itemArticle);
-    });
-  };
-
   inputForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const url = new URL(`${cors}${state.currentURL}`);
-    const parser = new DOMParser();
     axios.get(url)
       .then((response) => {
-        const parsedRSS = parser.parseFromString(response.data, 'application/xml');
-        render(parsedRSS);
+        const feed = parseFeed(response.data);
         state.formStatus = 'empty';
         state.feedsURL = [...state.feedsURL, state.currentURL];
+        state.currentFeed = feed;
       });
   });
+  watch(state, 'currentFeed', () => renderer(state.currentFeed));
 
   $('#desсriptionModal').on('show.bs.modal', (event) => {
     const current = $(event.relatedTarget);
