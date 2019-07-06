@@ -13,7 +13,6 @@ export default () => {
     feedsURL: [],
     currentURL: null,
     feeds: [],
-    pubDates: [],
     modal: {
       status: 'hidden',
       description: '',
@@ -72,12 +71,9 @@ export default () => {
     axios.get(url)
       .then((response) => {
         const feed = parseFeed(response.data);
-        const { items } = feed;
-        const pubDates = items.map(({ pubDate }) => pubDate);
         state.formStatus = 'empty';
         state.feedsURL = [...state.feedsURL, state.currentURL];
         state.feeds = [...state.feeds, feed];
-        state.pubDates = [...state.pubDates, ...pubDates];
       });
   });
   const update = () => {
