@@ -12,7 +12,8 @@ export default () => {
     formStatus: 'empty',
     feedsURL: [],
     currentURL: null,
-    currentFeed: null,
+    feeds: [],
+    pubDates: [],
     modal: {
       status: 'hidden',
       description: '',
@@ -71,12 +72,29 @@ export default () => {
     axios.get(url)
       .then((response) => {
         const feed = parseFeed(response.data);
+        const { items } = feed;
+        const pubDates = items.map(({ pubDate }) => pubDate);
         state.formStatus = 'empty';
         state.feedsURL = [...state.feedsURL, state.currentURL];
-        state.currentFeed = feed;
+        state.feeds = [...state.feeds, feed];
+        state.pubDates = [...state.pubDates, ...pubDates];
       });
   });
-  watch(state, 'currentFeed', () => renderer(state.currentFeed));
+  const update = () => {
+    const promises = state.feedsURL.map(url => axios.get(new URL(`${cors}${url}`)));
+    const promise = Promise.all(promises);
+
+    return promise.then((responses) => {
+      const receivedFeeds = responses.map(response => parseFeed(response.data));
+      if (state.feeds.includes(...receivedFeeds)) {
+        return;
+      }
+      state.feeds = receivedFeeds;
+    }).finally(setTimeout(update, 5000));
+  };
+  setTimeout(update, 5000);
+
+  watch(state, 'feeds', () => renderer(state.feeds));
 
   $('#desсriptionModal').on('show.bs.modal', (event) => {
     const current = $(event.relatedTarget);
