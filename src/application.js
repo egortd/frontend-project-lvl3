@@ -5,7 +5,7 @@ import axios from 'axios';
 import isURL from 'validator/lib/isURL';
 import $ from 'jquery';
 import parseFeed from './parser';
-import renderer from './renderers';
+import render from './renderers';
 
 export default () => {
   const state = {
@@ -25,6 +25,13 @@ export default () => {
   const submitButton = document.querySelector('#submitButton');
   const modal = document.querySelector('#desсriptionModal');
   const cors = 'https://cors-anywhere.herokuapp.com/';
+  const makeInvalidStatusAction = () => {
+    submitButton.disabled = true;
+    input.classList.remove('is-valid');
+    inputStatus.classList.remove('text-success');
+    input.classList.add('is-invalid');
+    inputStatus.classList.add('text-danger');
+  };
 
   const formStatusActions = {
     empty: () => {
@@ -43,13 +50,10 @@ export default () => {
       inputStatus.textContent = 'valid URL address';
     },
     invalid: () => {
-      submitButton.disabled = true;
-      input.classList.remove('is-valid');
-      inputStatus.classList.remove('text-success');
-      input.classList.add('is-invalid');
-      inputStatus.classList.add('text-danger');
+      makeInvalidStatusAction();
       inputStatus.textContent = 'invalid URL address';
     },
+    error: () => makeInvalidStatusAction(),
   };
 
   watch(state, 'formStatus', () => formStatusActions[state.formStatus]());
@@ -74,6 +78,10 @@ export default () => {
         state.formStatus = 'empty';
         state.feedsURL = [...state.feedsURL, state.currentURL];
         state.feeds = [...state.feeds, feed];
+      })
+      .catch((error) => {
+        state.formStatus = 'error';
+        inputStatus.textContent = error;
       });
   });
   const update = () => {
@@ -90,7 +98,7 @@ export default () => {
   };
   setTimeout(update, 5000);
 
-  watch(state, 'feeds', () => renderer(state.feeds));
+  watch(state, 'feeds', () => render(state.feeds));
 
   $('#desсriptionModal').on('show.bs.modal', (event) => {
     const current = $(event.relatedTarget);
