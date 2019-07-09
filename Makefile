@@ -1,12 +1,12 @@
 develop:
-		npx webpack-dev-server --hot --inline
+	npx webpack-dev-server --hot --inline
 build:
-		rm -rf dist && NODE_ENV=production npx webpack
+	rm -rf dist && NODE_ENV=production npx webpack
 publish:
-		npm publish --dry-run
+	npm publish --dry-run
 setup:
-		npm link
+	npm link
 lint:
-		npx eslint .
+	npx eslint .
 deploy:
-		make build && surge ./dist --domain egortd-rss-reader.surge.sh
+	make build && surge ./dist --domain egortd-rss-reader.surge.sh
