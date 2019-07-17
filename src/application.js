@@ -23,8 +23,10 @@ export default () => {
   const input = document.querySelector('#addUrl');
   const inputStatus = document.querySelector('#inputStatus');
   const submitButton = document.querySelector('#submitButton');
+  const loadingSpinner = document.querySelector('.spinner-border');
   const modal = document.querySelector('#desсriptionModal');
   const cors = 'https://cors-anywhere.herokuapp.com/';
+
   const makeInvalidStatusAction = () => {
     submitButton.disabled = true;
     input.classList.remove('is-valid');
@@ -32,11 +34,16 @@ export default () => {
     input.classList.add('is-invalid');
     inputStatus.classList.add('text-danger');
   };
+  const hideSpinner = () => {
+    loadingSpinner.hidden = true;
+    submitButton.lastChild.textContent = 'Submit';
+  };
 
   const formStatusActions = {
     empty: () => {
       input.value = '';
       submitButton.disabled = true;
+      hideSpinner();
       input.classList.remove('is-valid', 'is-invalid');
       inputStatus.classList.remove('text-danger', 'text-success');
       inputStatus.textContent = '';
@@ -53,7 +60,15 @@ export default () => {
       makeInvalidStatusAction();
       inputStatus.textContent = 'invalid URL address';
     },
-    error: () => makeInvalidStatusAction(),
+    loading: () => {
+      loadingSpinner.hidden = false;
+      submitButton.disabled = true;
+      submitButton.lastChild.textContent = ' Loading...';
+    },
+    error: () => {
+      makeInvalidStatusAction();
+      hideSpinner();
+    },
   };
 
   watch(state, 'formStatus', () => formStatusActions[state.formStatus]());
@@ -71,6 +86,7 @@ export default () => {
 
   inputForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    state.formStatus = 'loading';
     const url = new URL(`${cors}${state.currentURL}`);
     axios.get(url)
       .then((response) => {
@@ -94,9 +110,9 @@ export default () => {
         return;
       }
       state.feeds = receivedFeeds;
-    }).finally(setTimeout(update, 5000));
+    }).then(() => setTimeout(update, 5000));
   };
-  setTimeout(update, 5000);
+  update();
 
   watch(state, 'feeds', () => render(state.feeds));
 
